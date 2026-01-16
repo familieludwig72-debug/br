@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --br-blue: #00519e; /* Echtes BR Blau */
+            --br-blue: #00519e;
             --br-light-blue: #009ee3;
             --bg-dark: #0f1215;
             --surface: #1a1f24;
@@ -17,12 +17,11 @@
             --accent-red: #e11d48;
             --accent-green: #10b981;
             --highlight-bg: rgba(0, 81, 158, 0.3);
-            --highlight-border: var(--br-light-blue);
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         body {
-            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+            font-family: "Inter", "Segoe UI", sans-serif;
             background-color: var(--bg-dark);
             color: var(--text);
             margin: 0;
@@ -32,7 +31,6 @@
             overflow: hidden;
         }
 
-        /* Modern Header */
         header {
             background-color: var(--surface);
             padding: 12px 24px;
@@ -40,103 +38,121 @@
             align-items: center;
             justify-content: space-between;
             border-bottom: 2px solid var(--br-blue);
-            box-shadow: var(--shadow);
+            flex-shrink: 0;
             z-index: 100;
         }
 
         .brand { display: flex; align-items: center; gap: 12px; }
         .brand-logo { 
             background: #fff; color: var(--br-blue); padding: 4px 10px; 
-            border-radius: 4px; font-weight: 900; font-size: 1.2rem;
-        }
-        
-        .header-info { display: flex; gap: 20px; align-items: center; }
-        .time-display { color: var(--br-light-blue); font-family: 'Courier New', monospace; font-size: 1.2rem; font-weight: bold; }
-        .status-badge { 
-            font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; 
-            background: #22c55e22; color: #22c55e; border: 1px solid #22c55e44;
+            border-radius: 4px; font-weight: 900;
         }
 
-        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .container { width: 100%; max-width: 1600px; margin: 0 auto; padding: 20px; box-sizing: border-box; height: 100%; display: flex; flex-direction: column; }
+        main { flex: 1; display: flex; overflow: hidden; position: relative; }
+        .container { width: 100%; height: 100%; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
 
-        .screen { display: none; height: 100%; flex-direction: column; animation: fadeIn 0.3s ease; }
+        .screen { display: none; height: 100%; flex-direction: column; }
         .screen.active { display: flex; }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Setup Design */
+        /* Setup */
         .setup-card {
             background: var(--surface);
             padding: 40px;
             border-radius: 16px;
             max-width: 450px;
-            margin: 10vh auto;
+            margin: auto;
             text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-        }
-        .code-box {
-            background: #000; color: var(--br-light-blue); font-size: 3rem; padding: 20px;
-            border-radius: 12px; margin: 24px 0; font-family: monospace; border: 2px solid var(--br-blue);
-            text-shadow: 0 0 15px rgba(0,158,227,0.5);
+            box-shadow: var(--shadow);
         }
 
-        /* Regie Grid */
-        .regie-layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; height: 100%; overflow: hidden; }
+        /* Regie Layout - Fix für Abschneiden */
+        .regie-layout { 
+            display: grid; 
+            grid-template-columns: 1fr 380px; 
+            gap: 20px; 
+            height: 100%; 
+            overflow: hidden; /* Verhindert das Ausbrechen des Grids */
+        }
         
+        .script-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0; /* Wichtig für Flexbox Scroll */
+        }
+
         .script-card {
-            background: #050505; border-radius: 12px; overflow-y: auto; flex: 1;
-            padding: 45vh 0; position: relative; border: 1px solid #222;
+            background: #050505; 
+            border-radius: 12px; 
+            overflow-y: auto; 
+            flex: 1;
+            padding: 40vh 0; 
+            border: 1px solid #222;
         }
 
         .script-line {
-            padding: 24px 50px; font-size: 2rem; color: #444; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer; border-left: 8px solid transparent; line-height: 1.4;
+            padding: 20px 40px; 
+            font-size: 1.8rem; 
+            color: #444; 
+            transition: all 0.2s;
+            cursor: pointer;
+            line-height: 1.3;
         }
         .script-line.active {
-            color: #fff; background: var(--highlight-bg); border-left-color: var(--br-light-blue);
-            transform: scale(1.03); font-weight: 600;
+            color: #fff; background: var(--highlight-bg); font-weight: bold;
         }
 
-        .side-panel { display: flex; flex-direction: column; gap: 20px; height: 100%; }
-        .control-group { 
-            background: var(--surface); padding: 20px; border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.05); box-shadow: var(--shadow);
+        .side-panel { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            height: 100%; 
+            overflow-y: auto; /* Sidepanel scrollbar falls nötig */
+            padding-bottom: 20px;
         }
-        .control-group h4 { margin: 0 0 15px 0; color: var(--br-light-blue); font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; }
+
+        .control-group { 
+            background: var(--surface); 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            flex-shrink: 0;
+        }
+
+        .control-group h4 { margin: 0 0 10px 0; color: var(--br-light-blue); font-size: 0.75rem; text-transform: uppercase; }
+
+        /* Playlist Fix */
+        .playlist-container { 
+            max-height: 300px; 
+            overflow-y: auto; 
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .playlist-item {
+            background: var(--surface-light); padding: 10px; border-radius: 6px; margin-bottom: 5px;
+            cursor: pointer; font-size: 0.85rem; border: 1px solid transparent;
+        }
+        .playlist-item.selected { border-color: var(--br-light-blue); background: var(--highlight-bg); }
 
         /* Buttons */
         button {
-            width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold;
-            cursor: pointer; transition: all 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold;
+            cursor: pointer; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        button:active { transform: scale(0.98); }
         .btn-primary { background: var(--br-blue); }
-        .btn-primary:hover { background: var(--br-dark-blue); }
         .btn-danger { background: var(--accent-red); }
         .btn-success { background: var(--accent-green); }
-        .btn-secondary { background: var(--surface-light); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-secondary:hover { background: #333; }
+        .btn-secondary { background: var(--surface-light); }
 
-        /* Playlist */
-        .playlist-container { flex: 1; overflow-y: auto; padding-right: 5px; }
-        .playlist-item {
-            background: var(--surface-light); padding: 14px; border-radius: 8px; margin-bottom: 10px;
-            cursor: pointer; display: flex; align-items: center; justify-content: space-between;
-            font-size: 0.95rem; border: 2px solid transparent; transition: 0.2s;
-        }
-        .playlist-item:hover { background: #353b43; }
-        .playlist-item.selected { border-color: var(--br-light-blue); background: var(--highlight-bg); }
-
-        /* Countdown */
         #countdown-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.98); display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 2000;
         }
-        .countdown-number { font-size: 20rem; font-weight: 900; color: var(--accent-red); text-shadow: 0 0 50px rgba(225,29,72,0.4); }
-        
+        .countdown-number { font-size: 15rem; font-weight: 900; color: var(--accent-red); }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -145,65 +161,55 @@
 <header>
     <div class="brand">
         <div class="brand-logo">BR</div>
-        <span>Event ProPrompter <small id="session-tag" style="color: var(--text-muted); margin-left: 10px; font-weight: normal;"></small></span>
+        <span>Event ProPrompter <small id="session-tag"></small></span>
     </div>
-    
-    <div class="header-info">
-        <div id="clock-display" class="time-display">00:00:00</div>
-        <div id="connection-status" class="status-badge"><i class="fas fa-circle" style="font-size: 0.5rem; vertical-align: middle; margin-right: 5px;"></i> Bereit</div>
+    <div style="display: flex; gap: 20px; align-items: center;">
+        <div id="clock-display" style="font-family: monospace; font-size: 1.2rem;">00:00:00</div>
+        <div id="status-dot" style="width:10px; height:10px; border-radius:50%; background: #22c55e;"></div>
     </div>
 </header>
 
 <main>
-    <!-- SCREEN 1: Welcome & Setup -->
     <div id="screen-welcome" class="container screen active">
         <div class="setup-card">
-            <h2 style="margin-top: 0;">Sitzungs-Konfiguration</h2>
-            <p style="color: var(--text-muted);">Initialisierung des cloud-basierten Teleprompters.</p>
-            
-            <div id="setup-initial" style="display: flex; flex-direction: column; gap: 12px; margin-top: 30px;">
-                <button class="btn-primary" onclick="app.showSetup('regie')"><i class="fas fa-sliders-h"></i> REGIE-MODUS</button>
-                <button class="btn-success" onclick="app.showSetup('stage')"><i class="fas fa-microphone"></i> BÜHNEN-MODUS</button>
+            <h2>System-Start</h2>
+            <div id="setup-initial" style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="btn-primary" onclick="app.showSetup('regie')">REGIE STARTEN</button>
+                <button class="btn-success" onclick="app.showSetup('stage')">BÜHNE STARTEN</button>
             </div>
-
             <div id="setup-code-entry" class="hidden">
-                <p id="code-instruction">Generierter Zugangscode:</p>
-                <div id="code-display-area" class="code-box">----</div>
-                <input type="text" id="session-code-input" class="hidden" style="background:#000; color:white; font-size:2.5rem; width:200px; text-align:center; border:2px solid var(--br-blue); border-radius:12px; margin: 15px 0; outline: none;" maxlength="4" placeholder="----">
-                <button class="btn-primary" id="confirm-code-btn">STARTEN</button>
-                <button class="btn-secondary" style="margin-top: 15px;" onclick="app.showSetup('init')">ZURÜCK</button>
+                <div id="code-display-area" style="font-size: 3rem; margin: 20px; font-family: monospace; color: var(--br-light-blue);">----</div>
+                <input type="text" id="session-code-input" class="hidden" style="width: 150px; font-size: 2rem; text-align: center; margin-bottom: 20px;" maxlength="4">
+                <button class="btn-primary" id="confirm-code-btn">BESTÄTIGEN</button>
             </div>
         </div>
     </div>
 
-    <!-- SCREEN 2: Regie -->
     <div id="screen-regie" class="container screen">
         <div class="regie-layout">
-            <div style="display: flex; flex-direction: column; height: 100%;">
-                <div style="margin-bottom: 15px; display: flex; gap: 12px;">
-                    <button onclick="document.getElementById('file-input').click()" class="btn-secondary" style="width: auto;"><i class="fas fa-file-upload"></i> SKRIPT LADEN</button>
-                    <input type="file" id="file-input" class="hidden" accept=".txt" onchange="app.handleFile(this)">
+            <div class="script-container">
+                <div style="margin-bottom: 10px;">
+                    <button onclick="document.getElementById('file-input').click()" class="btn-secondary" style="width: auto;"><i class="fas fa-upload"></i> Skript laden</button>
+                    <input type="file" id="file-input" class="hidden" onchange="app.handleFile(this)">
                 </div>
                 <div id="regie-script-view" class="script-card"></div>
             </div>
-
             <div class="side-panel">
                 <div class="control-group">
-                    <h4>Show-Ablauf</h4>
-                    <button class="btn-danger" onclick="app.startCountdown()"><i class="fas fa-stopwatch"></i> 10s COUNTDOWN</button>
+                    <h4>Show-Kontrolle</h4>
+                    <button class="btn-danger" onclick="app.startCountdown()"><i class="fas fa-clock"></i> 10s COUNTDOWN</button>
+                    <button class="btn-secondary" style="margin-top:8px;" id="waiting-music-btn" onclick="app.toggleWaitingMusic()"><i class="fas fa-coffee"></i> WARTEMUSIK: AUS</button>
                 </div>
-
                 <div class="control-group">
-                    <h4>Audio Steuerung</h4>
-                    <div id="regie-song-title" style="font-weight: bold; color: var(--br-light-blue); margin-bottom: 8px; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kein Titel geladen</div>
-                    <div id="regie-audio-time" style="font-family: monospace; text-align: center; font-size: 2rem; margin: 10px 0; color: #fff;">0:00</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <h4>Audio</h4>
+                    <div id="regie-song-title" style="font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7;">Kein Song</div>
+                    <div id="regie-audio-time" style="font-size: 1.5rem; text-align: center; margin-bottom: 10px;">0:00</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                         <button class="btn-success" onclick="app.playAudio()"><i class="fas fa-play"></i></button>
                         <button class="btn-danger" onclick="app.stopAudio()"><i class="fas fa-stop"></i></button>
                     </div>
                 </div>
-
-                <div class="control-group" style="flex: 1; display: flex; flex-direction: column;">
+                <div class="control-group" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
                     <h4>Playlist</h4>
                     <div id="regie-playlist" class="playlist-container"></div>
                 </div>
@@ -211,18 +217,16 @@
         </div>
     </div>
 
-    <!-- SCREEN 3: Bühne -->
     <div id="screen-stage" class="container screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: var(--shadow);">
-            <div style="display: flex; align-items: center; gap: 15px;">
-                <label style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);">Monitoring:</label>
-                <select id="stage-audio-mode" onchange="app.updateAudioMode()" style="background: #000; color: white; border: 1px solid var(--br-blue); padding: 10px; border-radius: 6px; outline: none; cursor: pointer;">
-                    <option value="karaoke">KARAOKE (Instrumental)</option>
-                    <option value="vocal">VOCAL (Vollplayback)</option>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div>
+                <select id="stage-audio-mode" onchange="app.updateAudioMode()" style="padding: 8px; background: #000; color: white; border: 1px solid var(--br-blue);">
+                    <option value="karaoke">KARAOKE MODE</option>
+                    <option value="vocal">VOCAL MODE</option>
                 </select>
             </div>
-            <div id="stage-song-status" style="color: var(--br-light-blue); font-weight: bold; font-family: monospace; letter-spacing: 1px;">SYSTEM BEREIT</div>
-            <button id="ios-unlock-btn" class="btn-success" style="width: auto; padding: 10px 25px;" onclick="app.unlockAudio()"><i class="fas fa-volume-up"></i> AUDIO AKTIVIEREN</button>
+            <div id="stage-song-status">BEREIT</div>
+            <button id="ios-unlock-btn" class="btn-success" style="width: auto;" onclick="app.unlockAudio()">AUDIO AKTIVIEREN</button>
         </div>
         <div id="stage-script-view" class="script-card"></div>
     </div>
@@ -230,10 +234,8 @@
 
 <div id="countdown-overlay" class="hidden">
     <div id="countdown-timer" class="countdown-number">10</div>
-    <div style="color: var(--accent-red); font-size: 1.5rem; letter-spacing: 5px; text-transform: uppercase;">Achtung: Show-Start</div>
 </div>
 
-<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -241,15 +243,17 @@
     class BRApp {
         constructor() {
             this.audio = new Audio();
+            this.waitingAudio = new Audio();
+            this.waitingAudio.loop = true;
+            this.waitingAudio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; // Beispiel-Wartemusik
+            
             this.role = null;
             this.sessionId = null;
-            this.db = null;
             this.currentLine = 0;
             this.unlocked = false;
-            this.scriptLoaded = false;
-            this.songs = {}; // Dynamische Song-Daten aus dem Skript
+            this.songs = {};
+            this.lastData = null;
 
-            // Deine Firebase Config
             const firebaseConfig = {
                 apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
                 authDomain: "ardbr-2104b.firebaseapp.com",
@@ -257,122 +261,87 @@
                 projectId: "ardbr-2104b",
                 storageBucket: "ardbr-2104b.firebasestorage.app",
                 messagingSenderId: "1046269496627",
-                appId: "1:1046269496627:web:cdbb0c26a8568d0ca98246",
-                measurementId: "G-WNYTF03BX7"
+                appId: "1:1046269496627:web:cdbb0c26a8568d0ca98246"
             };
 
             firebase.initializeApp(firebaseConfig);
             this.db = firebase.database();
             
-            this.initClock();
-            document.addEventListener('keydown', e => this.handleKeys(e));
-        }
-
-        initClock() {
             setInterval(() => {
                 document.getElementById('clock-display').innerText = new Date().toLocaleTimeString('de-DE');
             }, 1000);
+
+            document.addEventListener('keydown', e => this.handleKeys(e));
         }
 
         showSetup(step) {
-            const init = document.getElementById('setup-initial');
+            const initial = document.getElementById('setup-initial');
             const entry = document.getElementById('setup-code-entry');
-            const input = document.getElementById('session-code-input');
             const display = document.getElementById('code-display-area');
+            const input = document.getElementById('session-code-input');
             const btn = document.getElementById('confirm-code-btn');
 
-            if (step === 'init') {
-                init.classList.remove('hidden');
-                entry.classList.add('hidden');
-            } else {
-                init.classList.add('hidden');
-                entry.classList.remove('hidden');
+            initial.classList.add('hidden');
+            entry.classList.remove('hidden');
 
-                if (step === 'regie') {
-                    const code = Math.floor(1000 + Math.random() * 9000).toString();
-                    input.classList.add('hidden');
-                    display.classList.remove('hidden');
-                    display.innerText = code;
-                    btn.onclick = () => { this.unlockAudio(); this.startSession(code, 'regie'); };
-                } else {
-                    input.classList.remove('hidden');
-                    display.classList.add('hidden');
-                    btn.onclick = () => this.startSession(input.value, 'stage');
-                }
+            if (step === 'regie') {
+                const code = Math.floor(1000 + Math.random() * 9000).toString();
+                display.innerText = code;
+                btn.onclick = () => this.startSession(code, 'regie');
+            } else {
+                display.classList.add('hidden');
+                input.classList.remove('hidden');
+                btn.onclick = () => this.startSession(input.value, 'stage');
             }
         }
 
         startSession(code, role) {
-            if (!code || code.length < 4) return;
             this.sessionId = code;
             this.role = role;
             this.ref = this.db.ref('br_sessions/' + code);
-
-            document.getElementById('session-tag').innerText = `ID: ${code} | ${role.toUpperCase()}`;
+            
+            document.getElementById('session-tag').innerText = `| ${role.toUpperCase()} (${code})`;
             document.getElementById('screen-welcome').classList.remove('active');
             document.getElementById('screen-' + role).classList.add('active');
-
-            if (role === 'stage') this.listenToFirebase();
-            if (role === 'regie') {
-                this.ref.set({ activeLine: 0, audioStatus: 'stop' });
-                this.listenToFirebase(); // Auch Regie hört zu für Sync
-            }
+            
+            if(role === 'regie') this.ref.set({ activeLine: 0, audioStatus: 'stop', waitingMusic: false });
+            this.listenToFirebase();
         }
 
         handleKeys(e) {
             if (this.role !== 'regie') return;
-            if (e.key === "ArrowDown") { e.preventDefault(); this.setLine(this.currentLine + 1); }
-            if (e.key === "ArrowUp") { e.preventDefault(); this.setLine(this.currentLine - 1); }
+            if (e.key === "ArrowDown") this.setLine(this.currentLine + 1);
+            if (e.key === "ArrowUp") this.setLine(this.currentLine - 1);
         }
 
         setLine(idx) {
             const lines = document.querySelectorAll('#regie-script-view .script-line');
-            if (idx < 0 || idx >= lines.length) return;
-            this.ref.update({ activeLine: idx });
-        }
-
-        updateUI(idx) {
-            const prefix = this.role === 'regie' ? 'regie' : 'stage';
-            const lines = document.querySelectorAll(`#${prefix}-script-view .script-line`);
-            lines.forEach(l => l.classList.remove('active'));
-            
-            const active = document.getElementById(`line-${prefix}-${idx}`);
-            if (active) {
-                active.classList.add('active');
-                active.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            if (idx >= 0 && idx < lines.length) this.ref.update({ activeLine: idx });
         }
 
         processScript(text) {
             const lines = text.split('\n');
-            let regieHtml = '', stageHtml = '', playlistHtml = '';
+            let rHtml = '', sHtml = '', pHtml = '';
             this.songs = {};
 
             lines.forEach((line, i) => {
                 const trimmed = line.trim();
                 if (!trimmed) return;
 
-                // Format: (Music: Name | KaraokeURL | VocalURL)
-                const musicMatch = line.match(/\(Music:\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\)/);
-
-                if (musicMatch) {
-                    const [_, name, karaoke, vocal] = musicMatch;
-                    this.songs[name] = { name, karaoke, vocal };
-                    playlistHtml += `
-                        <div class="playlist-item" id="playlist-${name.replace(/\s/g, '')}" onclick="app.selectSong('${name}')">
-                            <span style="font-weight:bold;"><i class="fas fa-music"></i> ${name}</span>
-                            <i class="fas fa-headphones" style="opacity:0.5;"></i>
-                        </div>`;
+                const match = line.match(/\(Music:\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\)/);
+                if (match) {
+                    const [_, name, kUrl, vUrl] = match;
+                    this.songs[name] = { name, karaoke: kUrl.trim(), vocal: vUrl.trim() };
+                    pHtml += `<div class="playlist-item" id="p-${name.replace(/\s/g, '')}" onclick="app.selectSong('${name}')">${name}</div>`;
                 }
 
-                regieHtml += `<div class="script-line" id="line-regie-${i}" onclick="app.setLine(${i})">${trimmed}</div>`;
-                stageHtml += `<div class="script-line" id="line-stage-${i}">${trimmed}</div>`;
+                rHtml += `<div class="script-line" id="line-regie-${i}" onclick="app.setLine(${i})">${trimmed}</div>`;
+                sHtml += `<div class="script-line" id="line-stage-${i}">${trimmed}</div>`;
             });
 
-            document.getElementById('regie-script-view').innerHTML = regieHtml;
-            document.getElementById('stage-script-view').innerHTML = stageHtml;
-            document.getElementById('regie-playlist').innerHTML = playlistHtml;
-
+            document.getElementById('regie-script-view').innerHTML = rHtml;
+            document.getElementById('stage-script-view').innerHTML = sHtml;
+            document.getElementById('regie-playlist').innerHTML = pHtml;
             if (this.role === 'regie') this.ref.update({ script: text });
         }
 
@@ -382,55 +351,70 @@
             reader.readAsText(input.files[0]);
         }
 
-        // --- AUDIO ---
-        unlockAudio() {
-            this.audio.play().then(() => {
-                this.audio.pause();
-                this.unlocked = true;
-                if(document.getElementById('ios-unlock-btn')) document.getElementById('ios-unlock-btn').classList.add('hidden');
-                if(document.getElementById('stage-song-status')) document.getElementById('stage-song-status').innerText = "AUDIO AKTIV";
-            }).catch(e => console.log("Unlock nötig"));
-        }
-
         selectSong(name) {
             this.ref.update({ currentSong: name, audioStatus: 'stop' });
-            document.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('selected'));
-            const item = document.getElementById(`playlist-${name.replace(/\s/g, '')}`);
-            if(item) item.classList.add('selected');
         }
 
         playAudio() { this.ref.update({ audioStatus: 'play' }); }
         stopAudio() { this.ref.update({ audioStatus: 'stop' }); }
 
-        updateAudioMode() {
-            if (this.lastData) this.syncAudio(this.lastData, true);
+        toggleWaitingMusic() {
+            const newState = !this.lastData.waitingMusic;
+            this.ref.update({ waitingMusic: newState });
         }
 
-        syncAudio(data, forceReload = false) {
+        unlockAudio() {
+            this.audio.play().then(() => {
+                this.audio.pause();
+                this.waitingAudio.play().then(() => this.waitingAudio.pause());
+                this.unlocked = true;
+                document.getElementById('ios-unlock-btn').classList.add('hidden');
+            });
+        }
+
+        updateAudioMode() {
+            if(this.lastData) this.syncAudio(this.lastData, true);
+        }
+
+        syncAudio(data, force = false) {
             if (!data.currentSong || (this.role === 'stage' && !this.unlocked)) return;
 
-            const songData = this.songs[data.currentSong];
-            if (!songData) return;
+            const song = this.songs[data.currentSong];
+            if (!song) return;
 
             const mode = document.getElementById('stage-audio-mode')?.value || 'karaoke';
-            const source = mode === 'karaoke' ? songData.karaoke : songData.vocal;
+            const src = mode === 'karaoke' ? song.karaoke : song.vocal;
 
-            if (this.audio.src !== source || forceReload) {
-                this.audio.src = source;
+            // Priorität: Fehlerbehebung Audio-Wechsel
+            if (this.audio.src !== src || force) {
+                const wasPlaying = !this.audio.paused;
+                const currentTime = this.audio.currentTime;
+                this.audio.src = src;
                 this.audio.load();
+                if (wasPlaying) {
+                    this.audio.currentTime = currentTime;
+                    this.audio.play().catch(e => console.error("Playback failed", e));
+                }
             }
 
             if (data.audioStatus === 'play') {
                 this.audio.play().catch(() => {});
-                if(this.role === 'stage') document.getElementById('stage-song-status').innerText = "PLAYING: " + data.currentSong;
             } else {
                 this.audio.pause();
                 if (data.audioStatus === 'stop') this.audio.currentTime = 0;
-                if(this.role === 'stage') document.getElementById('stage-song-status').innerText = "PAUSED";
+            }
+
+            // Wartemusik Sync
+            if (data.waitingMusic) {
+                if (this.waitingAudio.paused) this.waitingAudio.play();
+                if (this.role === 'regie') document.getElementById('waiting-music-btn').innerText = "WARTEMUSIK: AN";
+            } else {
+                this.waitingAudio.pause();
+                if (this.role === 'regie') document.getElementById('waiting-music-btn').innerText = "WARTEMUSIK: AUS";
             }
 
             if (this.role === 'regie') {
-                document.getElementById('regie-song-title').innerText = "Aktiv: " + data.currentSong;
+                document.getElementById('regie-song-title').innerText = data.currentSong;
                 this.audio.ontimeupdate = () => {
                     const m = Math.floor(this.audio.currentTime / 60);
                     const s = Math.floor(this.audio.currentTime % 60);
@@ -439,7 +423,40 @@
             }
         }
 
-        // --- FIREBASE SYNC ---
+        startCountdown() {
+            const target = Date.now() + 10000;
+            this.ref.update({ status: 'countdown', target: target });
+        }
+
+        speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'de-DE';
+            window.speechSynthesis.speak(msg);
+        }
+
+        runCountdown(target) {
+            const overlay = document.getElementById('countdown-overlay');
+            const timer = document.getElementById('countdown-timer');
+            overlay.classList.remove('hidden');
+            let lastSec = -1;
+
+            const int = setInterval(() => {
+                const diff = Math.ceil((target - Date.now()) / 1000);
+                if (diff <= 0) {
+                    clearInterval(int);
+                    timer.innerText = "GO!";
+                    this.speak("Abfahrt!");
+                    setTimeout(() => overlay.classList.add('hidden'), 1000);
+                } else {
+                    timer.innerText = diff;
+                    if (diff !== lastSec) {
+                        this.speak(diff.toString());
+                        lastSec = diff;
+                    }
+                }
+            }, 100);
+        }
+
         listenToFirebase() {
             this.ref.on('value', snap => {
                 const data = snap.val();
@@ -453,39 +470,22 @@
 
                 if (data.activeLine !== undefined) {
                     this.currentLine = data.activeLine;
-                    this.updateUI(data.activeLine);
+                    const prefix = this.role === 'regie' ? 'regie' : 'stage';
+                    document.querySelectorAll('.script-line').forEach(l => l.classList.remove('active'));
+                    const active = document.getElementById(`line-${prefix}-${data.activeLine}`);
+                    if(active) {
+                        active.classList.add('active');
+                        active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
                 }
 
-                if (data.status === 'countdown') this.runCountdown(data.target);
-                if (data.currentSong) this.syncAudio(data);
+                if (data.status === 'countdown') {
+                    this.runCountdown(data.target);
+                    this.ref.update({ status: 'active' });
+                }
+
+                this.syncAudio(data);
             });
-        }
-
-        startCountdown() {
-            const target = Date.now() + 10000;
-            this.ref.update({ status: 'countdown', target: target });
-        }
-
-        runCountdown(target) {
-            const overlay = document.getElementById('countdown-overlay');
-            const timerEl = document.getElementById('countdown-timer');
-            overlay.classList.remove('hidden');
-
-            const interval = setInterval(() => {
-                const diff = Math.ceil((target - Date.now()) / 1000);
-                if (diff <= 0) {
-                    clearInterval(interval);
-                    timerEl.innerText = "GO!";
-                    setTimeout(() => {
-                        overlay.classList.add('hidden');
-                        if (this.role === 'regie') this.ref.update({ status: 'live' });
-                    }, 1500);
-                } else {
-                    timerEl.innerText = diff;
-                    if (diff <= 3) timerEl.style.color = "white";
-                    else timerEl.style.color = "var(--accent-red)";
-                }
-            }, 100);
         }
     }
 
