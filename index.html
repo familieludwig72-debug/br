@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BR Event Regie | Teleprompter System</title>
+    <title>BR Event Regie | Teleprompter & Audio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -33,110 +33,95 @@
 
         header {
             background-color: var(--surface);
-            padding: 12px 24px;
+            padding: 10px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 2px solid var(--br-blue);
             flex-shrink: 0;
-            z-index: 100;
         }
 
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand-logo { 
-            background: #fff; color: var(--br-blue); padding: 4px 10px; 
-            border-radius: 4px; font-weight: 900;
-        }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .brand-logo { background: #fff; color: var(--br-blue); padding: 2px 8px; border-radius: 4px; font-weight: 900; }
 
         main { flex: 1; display: flex; overflow: hidden; position: relative; }
-        .container { width: 100%; height: 100%; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; }
+        .container { width: 100%; height: 100%; display: flex; flex-direction: column; padding: 15px; box-sizing: border-box; }
 
         .screen { display: none; height: 100%; flex-direction: column; }
         .screen.active { display: flex; }
 
-        /* Setup */
+        /* Setup Design */
         .setup-card {
             background: var(--surface);
-            padding: 40px;
-            border-radius: 16px;
-            max-width: 450px;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 400px;
             margin: auto;
             text-align: center;
             box-shadow: var(--shadow);
         }
 
-        /* Regie Layout - Fix für Abschneiden */
+        /* Regie Layout */
         .regie-layout { 
             display: grid; 
-            grid-template-columns: 1fr 380px; 
-            gap: 20px; 
+            grid-template-columns: 1fr 350px; 
+            gap: 15px; 
             height: 100%; 
-            overflow: hidden; /* Verhindert das Ausbrechen des Grids */
+            overflow: hidden;
         }
         
-        .script-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            min-height: 0; /* Wichtig für Flexbox Scroll */
-        }
-
         .script-card {
-            background: #050505; 
-            border-radius: 12px; 
+            background: #000; 
+            border-radius: 10px; 
             overflow-y: auto; 
             flex: 1;
             padding: 40vh 0; 
-            border: 1px solid #222;
+            border: 1px solid #333;
         }
 
         .script-line {
-            padding: 20px 40px; 
-            font-size: 1.8rem; 
-            color: #444; 
+            padding: 15px 30px; 
+            font-size: 1.6rem; 
+            color: #555; 
             transition: all 0.2s;
             cursor: pointer;
             line-height: 1.3;
         }
         .script-line.active {
-            color: #fff; background: var(--highlight-bg); font-weight: bold;
+            color: #fff; background: var(--highlight-bg); font-weight: bold; border-left: 5px solid var(--br-light-blue);
         }
 
         .side-panel { 
             display: flex; 
             flex-direction: column; 
-            gap: 15px; 
+            gap: 12px; 
             height: 100%; 
-            overflow-y: auto; /* Sidepanel scrollbar falls nötig */
-            padding-bottom: 20px;
+            overflow-y: auto;
         }
 
         .control-group { 
             background: var(--surface); 
             padding: 15px; 
-            border-radius: 12px; 
-            border: 1px solid rgba(255,255,255,0.05);
-            flex-shrink: 0;
+            border-radius: 10px; 
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .control-group h4 { margin: 0 0 10px 0; color: var(--br-light-blue); font-size: 0.75rem; text-transform: uppercase; }
+        .control-group h4 { margin: 0 0 10px 0; color: var(--br-light-blue); font-size: 0.7rem; text-transform: uppercase; }
 
-        /* Playlist Fix */
         .playlist-container { 
-            max-height: 300px; 
+            max-height: 250px; 
             overflow-y: auto; 
-            background: rgba(0,0,0,0.2);
-            border-radius: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
             padding: 5px;
         }
 
         .playlist-item {
-            background: var(--surface-light); padding: 10px; border-radius: 6px; margin-bottom: 5px;
-            cursor: pointer; font-size: 0.85rem; border: 1px solid transparent;
+            background: var(--surface-light); padding: 8px; border-radius: 4px; margin-bottom: 5px;
+            cursor: pointer; font-size: 0.8rem; border: 1px solid transparent;
         }
         .playlist-item.selected { border-color: var(--br-light-blue); background: var(--highlight-bg); }
 
-        /* Buttons */
         button {
             width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold;
             cursor: pointer; transition: 0.2s; color: white; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -148,7 +133,7 @@
 
         #countdown-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
+            background: rgba(0,0,0,0.98); display: flex; flex-direction: column;
             justify-content: center; align-items: center; z-index: 2000;
         }
         .countdown-number { font-size: 15rem; font-weight: 900; color: var(--accent-red); }
@@ -161,55 +146,57 @@
 <header>
     <div class="brand">
         <div class="brand-logo">BR</div>
-        <span>Event ProPrompter <small id="session-tag"></small></span>
+        <span>Regie-System <small id="session-tag"></small></span>
     </div>
-    <div style="display: flex; gap: 20px; align-items: center;">
-        <div id="clock-display" style="font-family: monospace; font-size: 1.2rem;">00:00:00</div>
-        <div id="status-dot" style="width:10px; height:10px; border-radius:50%; background: #22c55e;"></div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+        <div id="clock-display" style="font-family: monospace;">00:00:00</div>
+        <div id="status-dot" style="width:10px; height:10px; border-radius:50%; background: #999;"></div>
     </div>
 </header>
 
 <main>
+    <!-- Welcome -->
     <div id="screen-welcome" class="container screen active">
         <div class="setup-card">
-            <h2>System-Start</h2>
-            <div id="setup-initial" style="display: flex; flex-direction: column; gap: 10px;">
-                <button class="btn-primary" onclick="app.showSetup('regie')">REGIE STARTEN</button>
-                <button class="btn-success" onclick="app.showSetup('stage')">BÜHNE STARTEN</button>
+            <h2 style="margin-bottom: 20px;">Event-Steuerung</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <button class="btn-primary" onclick="app.showSetup('regie')">MODUS: REGIE</button>
+                <button class="btn-success" onclick="app.showSetup('stage')">MODUS: BÜHNE</button>
             </div>
-            <div id="setup-code-entry" class="hidden">
-                <div id="code-display-area" style="font-size: 3rem; margin: 20px; font-family: monospace; color: var(--br-light-blue);">----</div>
-                <input type="text" id="session-code-input" class="hidden" style="width: 150px; font-size: 2rem; text-align: center; margin-bottom: 20px;" maxlength="4">
-                <button class="btn-primary" id="confirm-code-btn">BESTÄTIGEN</button>
+            <div id="setup-code-entry" class="hidden" style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
+                <div id="code-display-area" style="font-size: 3rem; font-family: monospace; color: var(--br-light-blue); margin-bottom: 10px;">----</div>
+                <input type="text" id="session-code-input" class="hidden" style="width: 120px; font-size: 2rem; text-align: center; background: #000; border: 1px solid var(--br-blue); color: #fff; margin-bottom: 15px;" maxlength="4">
+                <button class="btn-primary" id="confirm-code-btn">START</button>
             </div>
         </div>
     </div>
 
+    <!-- Regie -->
     <div id="screen-regie" class="container screen">
         <div class="regie-layout">
-            <div class="script-container">
-                <div style="margin-bottom: 10px;">
-                    <button onclick="document.getElementById('file-input').click()" class="btn-secondary" style="width: auto;"><i class="fas fa-upload"></i> Skript laden</button>
+            <div style="display: flex; flex-direction: column; min-height: 0;">
+                <div style="margin-bottom: 10px; display: flex; gap: 10px;">
+                    <button onclick="document.getElementById('file-input').click()" class="btn-secondary" style="width: auto;"><i class="fas fa-file-import"></i> Datei laden</button>
                     <input type="file" id="file-input" class="hidden" onchange="app.handleFile(this)">
                 </div>
                 <div id="regie-script-view" class="script-card"></div>
             </div>
             <div class="side-panel">
                 <div class="control-group">
-                    <h4>Show-Kontrolle</h4>
-                    <button class="btn-danger" onclick="app.startCountdown()"><i class="fas fa-clock"></i> 10s COUNTDOWN</button>
-                    <button class="btn-secondary" style="margin-top:8px;" id="waiting-music-btn" onclick="app.toggleWaitingMusic()"><i class="fas fa-coffee"></i> WARTEMUSIK: AUS</button>
+                    <h4>Show</h4>
+                    <button class="btn-danger" onclick="app.startCountdown()"><i class="fas fa-play"></i> COUNTDOWN</button>
+                    <button class="btn-secondary" style="margin-top:8px;" id="waiting-music-btn" onclick="app.toggleWaitingMusic()">WARTE-MUSIK: AUS</button>
                 </div>
                 <div class="control-group">
-                    <h4>Audio</h4>
-                    <div id="regie-song-title" style="font-size: 0.8rem; margin-bottom: 5px; opacity: 0.7;">Kein Song</div>
-                    <div id="regie-audio-time" style="font-size: 1.5rem; text-align: center; margin-bottom: 10px;">0:00</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <h4>Audio-Master</h4>
+                    <div id="regie-song-title" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px;">- Kein Song -</div>
+                    <div id="regie-audio-time" style="font-size: 2rem; text-align: center; margin-bottom: 10px; font-family: monospace;">0:00</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <button class="btn-success" onclick="app.playAudio()"><i class="fas fa-play"></i></button>
                         <button class="btn-danger" onclick="app.stopAudio()"><i class="fas fa-stop"></i></button>
                     </div>
                 </div>
-                <div class="control-group" style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+                <div class="control-group" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
                     <h4>Playlist</h4>
                     <div id="regie-playlist" class="playlist-container"></div>
                 </div>
@@ -217,16 +204,17 @@
         </div>
     </div>
 
+    <!-- Stage -->
     <div id="screen-stage" class="container screen">
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <div>
-                <select id="stage-audio-mode" onchange="app.updateAudioMode()" style="padding: 8px; background: #000; color: white; border: 1px solid var(--br-blue);">
-                    <option value="karaoke">KARAOKE MODE</option>
-                    <option value="vocal">VOCAL MODE</option>
+        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #333;">
+            <div style="display: flex; gap: 10px;">
+                <select id="stage-audio-mode" onchange="app.updateAudioMode()" style="padding: 10px; background: #000; color: white; border: 1px solid var(--br-blue); border-radius: 4px;">
+                    <option value="karaoke">KARAOKE (Inst.)</option>
+                    <option value="vocal">VOCAL (Full)</option>
                 </select>
+                <button id="ios-unlock-btn" class="btn-success" style="width: auto; padding: 0 20px;" onclick="app.unlockAudio()"><i class="fas fa-volume-up"></i> AUDIO AKTIVIEREN</button>
             </div>
-            <div id="stage-song-status">BEREIT</div>
-            <button id="ios-unlock-btn" class="btn-success" style="width: auto;" onclick="app.unlockAudio()">AUDIO AKTIVIEREN</button>
+            <div id="stage-song-status" style="font-weight: bold; font-family: monospace;">STATUS: OFFLINE</div>
         </div>
         <div id="stage-script-view" class="script-card"></div>
     </div>
@@ -242,17 +230,22 @@
 <script>
     class BRApp {
         constructor() {
+            // Audio-Initialisierung
             this.audio = new Audio();
+            this.audio.crossOrigin = "anonymous";
+            
             this.waitingAudio = new Audio();
             this.waitingAudio.loop = true;
-            this.waitingAudio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"; // Beispiel-Wartemusik
+            this.waitingAudio.crossOrigin = "anonymous";
+            this.waitingAudio.src = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"; 
             
             this.role = null;
             this.sessionId = null;
+            this.songs = {};
             this.currentLine = 0;
             this.unlocked = false;
-            this.songs = {};
             this.lastData = null;
+            this.scriptLoaded = false;
 
             const firebaseConfig = {
                 apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
@@ -267,11 +260,14 @@
             firebase.initializeApp(firebaseConfig);
             this.db = firebase.database();
             
+            this.initClock();
+            document.addEventListener('keydown', e => this.handleKeys(e));
+        }
+
+        initClock() {
             setInterval(() => {
                 document.getElementById('clock-display').innerText = new Date().toLocaleTimeString('de-DE');
             }, 1000);
-
-            document.addEventListener('keydown', e => this.handleKeys(e));
         }
 
         showSetup(step) {
@@ -300,12 +296,28 @@
             this.role = role;
             this.ref = this.db.ref('br_sessions/' + code);
             
-            document.getElementById('session-tag').innerText = `| ${role.toUpperCase()} (${code})`;
+            document.getElementById('session-tag').innerText = `[${role.toUpperCase()} ID:${code}]`;
             document.getElementById('screen-welcome').classList.remove('active');
             document.getElementById('screen-' + role).classList.add('active');
-            
-            if(role === 'regie') this.ref.set({ activeLine: 0, audioStatus: 'stop', waitingMusic: false });
+            document.getElementById('status-dot').style.background = "#22c55e";
+
+            if(role === 'regie') {
+                this.ref.set({ activeLine: 0, audioStatus: 'stop', waitingMusic: false, currentSong: "" });
+            }
             this.listenToFirebase();
+        }
+
+        unlockAudio() {
+            // WICHTIG: Erzeugt Nutzer-Interaktion für den Browser
+            this.audio.play().then(() => {
+                this.audio.pause();
+                this.unlocked = true;
+                document.getElementById('ios-unlock-btn').style.display = 'none';
+                document.getElementById('stage-song-status').innerText = "STATUS: BEREIT";
+            }).catch(e => {
+                console.error("Audio Unlock fehlgeschlagen", e);
+            });
+            this.waitingAudio.play().then(() => this.waitingAudio.pause());
         }
 
         handleKeys(e) {
@@ -316,7 +328,9 @@
 
         setLine(idx) {
             const lines = document.querySelectorAll('#regie-script-view .script-line');
-            if (idx >= 0 && idx < lines.length) this.ref.update({ activeLine: idx });
+            if (idx >= 0 && idx < lines.length) {
+                this.ref.update({ activeLine: idx });
+            }
         }
 
         processScript(text) {
@@ -328,11 +342,13 @@
                 const trimmed = line.trim();
                 if (!trimmed) return;
 
+                // Format: (Music: Titel | KaraokeURL | VocalURL)
                 const match = line.match(/\(Music:\s*(.*?)\s*\|\s*(.*?)\s*\|\s*(.*?)\)/);
                 if (match) {
                     const [_, name, kUrl, vUrl] = match;
-                    this.songs[name] = { name, karaoke: kUrl.trim(), vocal: vUrl.trim() };
-                    pHtml += `<div class="playlist-item" id="p-${name.replace(/\s/g, '')}" onclick="app.selectSong('${name}')">${name}</div>`;
+                    const songObj = { name: name.trim(), karaoke: kUrl.trim(), vocal: vUrl.trim() };
+                    this.songs[name.trim()] = songObj;
+                    pHtml += `<div class="playlist-item" id="p-${name.trim().replace(/\s/g, '')}" onclick="app.selectSong('${name.trim()}')"><i class="fas fa-music"></i> ${name.trim()}</div>`;
                 }
 
                 rHtml += `<div class="script-line" id="line-regie-${i}" onclick="app.setLine(${i})">${trimmed}</div>`;
@@ -342,10 +358,13 @@
             document.getElementById('regie-script-view').innerHTML = rHtml;
             document.getElementById('stage-script-view').innerHTML = sHtml;
             document.getElementById('regie-playlist').innerHTML = pHtml;
+            
             if (this.role === 'regie') this.ref.update({ script: text });
+            this.scriptLoaded = true;
         }
 
         handleFile(input) {
+            if (!input.files[0]) return;
             const reader = new FileReader();
             reader.onload = (e) => this.processScript(e.target.result);
             reader.readAsText(input.files[0]);
@@ -353,68 +372,61 @@
 
         selectSong(name) {
             this.ref.update({ currentSong: name, audioStatus: 'stop' });
+            document.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('selected'));
+            const el = document.getElementById(`p-${name.replace(/\s/g, '')}`);
+            if(el) el.classList.add('selected');
         }
 
         playAudio() { this.ref.update({ audioStatus: 'play' }); }
         stopAudio() { this.ref.update({ audioStatus: 'stop' }); }
-
-        toggleWaitingMusic() {
-            const newState = !this.lastData.waitingMusic;
-            this.ref.update({ waitingMusic: newState });
-        }
-
-        unlockAudio() {
-            this.audio.play().then(() => {
-                this.audio.pause();
-                this.waitingAudio.play().then(() => this.waitingAudio.pause());
-                this.unlocked = true;
-                document.getElementById('ios-unlock-btn').classList.add('hidden');
-            });
-        }
+        toggleWaitingMusic() { this.ref.update({ waitingMusic: !this.lastData.waitingMusic }); }
 
         updateAudioMode() {
             if(this.lastData) this.syncAudio(this.lastData, true);
         }
 
-        syncAudio(data, force = false) {
-            if (!data.currentSong || (this.role === 'stage' && !this.unlocked)) return;
+        syncAudio(data, forceReload = false) {
+            if (!data.currentSong) return;
+            if (this.role === 'stage' && !this.unlocked) return;
 
             const song = this.songs[data.currentSong];
             if (!song) return;
 
             const mode = document.getElementById('stage-audio-mode')?.value || 'karaoke';
-            const src = mode === 'karaoke' ? song.karaoke : song.vocal;
+            const targetSrc = (mode === 'karaoke') ? song.karaoke : song.vocal;
 
-            // Priorität: Fehlerbehebung Audio-Wechsel
-            if (this.audio.src !== src || force) {
-                const wasPlaying = !this.audio.paused;
-                const currentTime = this.audio.currentTime;
-                this.audio.src = src;
+            // Audio-URL wechseln falls nötig
+            if (this.audio.src !== targetSrc || forceReload) {
+                this.audio.pause();
+                this.audio.src = targetSrc;
                 this.audio.load();
-                if (wasPlaying) {
-                    this.audio.currentTime = currentTime;
-                    this.audio.play().catch(e => console.error("Playback failed", e));
-                }
+                if(this.role === 'stage') document.getElementById('stage-song-status').innerText = "STATUS: LÄDT...";
             }
 
+            // Playback Steuerung
             if (data.audioStatus === 'play') {
-                this.audio.play().catch(() => {});
+                this.audio.play().catch(e => {
+                    if(this.role === 'stage') document.getElementById('stage-song-status').innerText = "AUDIO-FEHLER!";
+                });
+                if(this.role === 'stage') document.getElementById('stage-song-status').innerText = "STATUS: PLAY (" + mode.toUpperCase() + ")";
             } else {
                 this.audio.pause();
                 if (data.audioStatus === 'stop') this.audio.currentTime = 0;
+                if(this.role === 'stage') document.getElementById('stage-song-status').innerText = "STATUS: STOPPED";
             }
 
-            // Wartemusik Sync
+            // Wartemusik
             if (data.waitingMusic) {
                 if (this.waitingAudio.paused) this.waitingAudio.play();
-                if (this.role === 'regie') document.getElementById('waiting-music-btn').innerText = "WARTEMUSIK: AN";
+                if (this.role === 'regie') document.getElementById('waiting-music-btn').innerText = "WARTE-MUSIK: AN";
             } else {
                 this.waitingAudio.pause();
-                if (this.role === 'regie') document.getElementById('waiting-music-btn').innerText = "WARTEMUSIK: AUS";
+                if (this.role === 'regie') document.getElementById('waiting-music-btn').innerText = "WARTE-MUSIK: AUS";
             }
 
+            // Regie Feedback
             if (this.role === 'regie') {
-                document.getElementById('regie-song-title').innerText = data.currentSong;
+                document.getElementById('regie-song-title').innerText = "Aktiv: " + data.currentSong;
                 this.audio.ontimeupdate = () => {
                     const m = Math.floor(this.audio.currentTime / 60);
                     const s = Math.floor(this.audio.currentTime % 60);
@@ -424,8 +436,7 @@
         }
 
         startCountdown() {
-            const target = Date.now() + 10000;
-            this.ref.update({ status: 'countdown', target: target });
+            this.ref.update({ status: 'countdown', target: Date.now() + 10000 });
         }
 
         speak(text) {
@@ -438,20 +449,20 @@
             const overlay = document.getElementById('countdown-overlay');
             const timer = document.getElementById('countdown-timer');
             overlay.classList.remove('hidden');
-            let lastSec = -1;
+            let lastNum = -1;
 
             const int = setInterval(() => {
                 const diff = Math.ceil((target - Date.now()) / 1000);
                 if (diff <= 0) {
                     clearInterval(int);
                     timer.innerText = "GO!";
-                    this.speak("Abfahrt!");
-                    setTimeout(() => overlay.classList.add('hidden'), 1000);
+                    this.speak("Abfahrt");
+                    setTimeout(() => overlay.classList.add('hidden'), 1500);
                 } else {
                     timer.innerText = diff;
-                    if (diff !== lastSec) {
+                    if (diff !== lastNum) {
                         this.speak(diff.toString());
-                        lastSec = diff;
+                        lastNum = diff;
                     }
                 }
             }, 100);
@@ -463,11 +474,12 @@
                 if (!data) return;
                 this.lastData = data;
 
+                // Script Sync
                 if (data.script && !this.scriptLoaded) {
                     this.processScript(data.script);
-                    this.scriptLoaded = true;
                 }
 
+                // Line Sync
                 if (data.activeLine !== undefined) {
                     this.currentLine = data.activeLine;
                     const prefix = this.role === 'regie' ? 'regie' : 'stage';
@@ -479,11 +491,13 @@
                     }
                 }
 
+                // Countdown
                 if (data.status === 'countdown') {
                     this.runCountdown(data.target);
                     this.ref.update({ status: 'active' });
                 }
 
+                // Audio Sync
                 this.syncAudio(data);
             });
         }
