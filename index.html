@@ -3,234 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Moderne Web-App Tags -->
-    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>BR Regie-Sync v2</title>
+    <title>BR Master-Sync Pro</title>
 
-    <!-- Firebase Compat SDKs (Verhindert CORS & Module-Errors) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <style>
-        :root { --br-blue: #005591; --br-light: #009ee3; --br-red: #d7191c; --white: #ffffff; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #121212; color: white; overflow: hidden; }
+        :root { --main-bg: #005591; --accent: #009ee3; --header-bg: #003a63; }
+        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: #f4f7f9; height: 100vh; overflow: hidden; }
         
-        /* Fullscreen Video Overlay */
-        #mainVideo { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; display: none; z-index: 9999; object-fit: contain; }
+        /* Dynamisches Farbschema */
+        .dynamic-theme { background-color: var(--main-bg) !important; }
+        .dynamic-accent { background-color: var(--accent) !important; color: white; }
+        .dynamic-header { background-color: var(--header-bg) !important; }
 
-        /* Onboarding Screen */
-        #onboarding { position: fixed; inset: 0; background: var(--br-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .card { background: white; color: var(--br-blue); padding: 30px; border-radius: 12px; text-align: center; cursor: pointer; width: 220px; margin: 15px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.2s; }
-        .card:active { transform: scale(0.95); }
-
-        /* Regie Layout */
-        #regie-ui { display: none; padding: 20px; height: 100vh; box-sizing: border-box; background: #f0f2f5; color: #333; }
-        .header { background: var(--br-blue); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .panel { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        /* Onboarding */
+        #onboarding { position: fixed; inset: 0; background: var(--main-bg); display: flex; align-items: center; justify-content: center; z-index: 10000; color: white; }
+        .setup-box { background: white; color: #333; padding: 30px; border-radius: 15px; width: 350px; text-align: center; }
         
-        /* iPhone UI */
-        #iphone-ui { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #000; }
+        /* Regie UI */
+        #regie-ui { display: none; height: 100vh; flex-direction: column; }
+        .top-bar { padding: 15px 30px; color: white; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .current-info { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 5px; font-size: 0.9rem; }
         
-        /* Buttons & Inputs */
-        .btn { border: none; padding: 18px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1rem; }
-        .btn-blue { background: var(--br-blue); color: white; }
-        .btn-red { background: var(--br-red); color: white; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .live-mode { color: var(--br-red); font-weight: bold; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
-        #clock, #timer { font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: bold; }
+        .main-content { display: grid; grid-template-columns: 350px 1fr 300px; gap: 20px; padding: 20px; height: 100%; box-sizing: border-box; }
+        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-y: auto; }
+        
+        /* Buttons & Form */
+        .btn { border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        input, select { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        
+        /* Sänger UI */
+        #singer-ui { display: none; height: 100vh; background: #000; color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .singer-status { font-size: 2rem; margin-top: 20px; text-transform: uppercase; letter-spacing: 3px; }
+        
+        #timer { font-family: monospace; font-size: 4rem; text-align: center; margin: 20px 0; }
+        #video-player { position: fixed; inset: 0; background: black; display: none; z-index: 11000; }
     </style>
 </head>
-<body>
+<body class="dynamic-theme">
 
-    <!-- Video Element (Global) -->
-    <video id="mainVideo" playsinline></video>
-    <audio id="mainAudio" playsinline></audio>
-
-    <!-- 1. ROLLENAUSWAHL -->
     <div id="onboarding">
-        <img src="https://upload.wikimedia.org" width="150" style="margin-bottom: 40px;">
-        <h1>SYSTEM-START</h1>
-        <div class="card" onclick="selectRole('regie')">REGIE-KONSOLE</div>
-        <div class="card" onclick="selectRole('saenger')">SÄNGER-IPHONE</div>
+        <div class="setup-box">
+            <img src="https://upload.wikimedia.org" width="80">
+            <h3>System-Start</h3>
+            <button class="btn dynamic-accent" onclick="initApp('regie')">KONSOLE (REGIE)</button>
+            <button class="btn dynamic-accent" onclick="initApp('singer')">GERÄT (SÄNGER)</button>
+        </div>
     </div>
 
-    <!-- 2. REGIE INTERFACE -->
     <div id="regie-ui">
-        <div class="header">
+        <div class="top-bar dynamic-header">
             <div>
-                <span id="display-title" style="font-size: 1.4rem;">TITEL LADEN...</span><br>
-                <span id="display-mode">MODUS: TEST</span>
+                <strong id="active-show">KEINE SENDUNG GELADEN</strong>
+                <div class="current-info">AKTIV: <span id="live-status">BEREITSCHAFT</span></div>
             </div>
-            <div id="clock">00:00:00</div>
+            <div id="clock" style="font-family: monospace; font-size: 1.5rem;">00:00:00</div>
         </div>
 
-        <div class="controls">
+        <div class="main-content">
+            <!-- Config Management -->
             <div class="panel">
-                <h3>Sende-Ablauf</h3>
-                <label>GitHub Raw URL (MP4 oder MP3):</label>
-                <input type="text" id="github-url" placeholder="https://raw.githubusercontent.com...">
-                
-                <button class="btn btn-blue" onclick="sendSignal(true)">START: VIDEO + PLAYBACK</button>
-                <button class="btn btn-blue" onclick="sendSignal(false)">START: NUR AUDIO</button>
-                <button class="btn btn-red" onclick="stopSignal()">STOPP / RESET</button>
+                <h4>Sende-Konfiguration</h4>
+                <select id="config-load-select"><option>Lade Profile...</option></select>
+                <button class="btn" style="background:#eee" onclick="loadSelectedConfig()">PROFIL LADEN</button>
+                <hr>
+                <input type="text" id="conf-name" placeholder="Name (z.B. Abendschau)">
+                <input type="color" id="color1" value="#005591"> <small>Hauptfarbe</small>
+                <input type="color" id="color2" value="#009ee3"> <small>Akzent</small>
+                <input type="color" id="color3" value="#003a63"> <small>Header</small>
+                <button class="btn dynamic-accent" onclick="saveConfig()">CONFIG SPEICHERN</button>
             </div>
-            
-            <div class="panel" style="text-align: center;">
-                <h3>Status Monitor</h3>
-                <p>Verstrichene Zeit:</p>
+
+            <!-- Steuerpult -->
+            <div id="control-pult" class="panel">
+                <h4>Matrix-Steuerung</h4>
+                <div style="background:#f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                    <strong>VERSION A (Sänger Playback)</strong>
+                    <input type="text" id="url_s" placeholder="URL Sänger (iPhone)">
+                    <input type="text" id="url_p_a" placeholder="URL Publikum (Regie)">
+                    <button class="btn dynamic-accent" onclick="fire(1, true)">START VIDEO</button>
+                    <button class="btn" style="background:#444; color:white" onclick="fire(1, false)">START AUDIO</button>
+                </div>
+                <div style="background:#f9f9f9; padding: 15px; border-radius: 8px;">
+                    <strong>VERSION B (Ohne Sänger Playback)</strong>
+                    <input type="text" id="url_p_b" placeholder="URL Publikum (Regie)">
+                    <button class="btn dynamic-accent" onclick="fire(2, true)">START VIDEO</button>
+                </div>
+                <button class="btn" style="background:#d7191c; color:white; margin-top:20px;" onclick="stop()">NOT-AUS</button>
+            </div>
+
+            <!-- Timer & Anzeige -->
+            <div class="panel">
+                <h4>Status</h4>
                 <div id="timer">00:00.0</div>
+                <div style="padding: 10px; background: #eefaff; border-radius: 5px;">
+                    <strong>"Set me Free" (Sänger Exklusiv)</strong>
+                    <input type="text" id="url_smf" placeholder="URL SMF">
+                    <button class="btn dynamic-accent" onclick="fire(3, false)">SMF STARTEN</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. SÄNGER INTERFACE -->
-    <div id="iphone-ui">
-        <img src="https://upload.wikimedia.org" width="100" style="opacity: 0.3;">
-        <h2 id="singer-status" style="margin-top: 30px; letter-spacing: 2px;">BEREIT...</h2>
-        <p style="color: #444;">Sync-Service aktiv</p>
+    <div id="singer-ui">
+        <div id="singer-indicator" style="width:120px; height:120px; border-radius:50%; border:5px solid var(--accent); display:flex; align-items:center; justify-content:center;">
+            <img src="https://upload.wikimedia.org" width="60">
+        </div>
+        <div class="singer-status" id="s-label">OFFLINE</div>
+        <div id="s-timer" style="font-family:monospace; font-size:2rem; margin-top:20px;">00:00.0</div>
     </div>
+
+    <video id="video-player" playsinline></video>
+    <audio id="audio-player" playsinline></audio>
 
     <script>
-        // --- FIREBASE KONFIGURATION ---
-        const firebaseConfig = {
-  apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
-  authDomain: "ardbr-2104b.firebaseapp.com",
-  databaseURL: "https://ardbr-2104b-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "ardbr-2104b",
-  storageBucket: "ardbr-2104b.firebasestorage.app",
-  messagingSenderId: "1046269496627",
-  appId: "1:1046269496627:web:cdbb0c26a8568d0ca98246",
-  measurementId: "G-WNYTF03BX7"
+        const config = {
+            apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
+            databaseURL: "https://ardbr-2104b-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ardbr-2104b"
         };
-
-        // Initialisierung
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(config);
         const db = firebase.database();
+        let role, offset = 0, tIdx;
 
-        let currentRole = null;
-        let serverOffset = 0;
-        let timerInterval;
+        db.ref(".info/serverTimeOffset").on("value", s => offset = s.val());
 
-        // Zeit-Sync
-        db.ref(".info/serverTimeOffset").on("value", (snap) => {
-            serverOffset = snap.val();
-        });
-
-        // --- GLOBAL FUNCTIONS ---
-        window.selectRole = function(role) {
-            currentRole = role;
+        window.initApp = (r) => {
+            role = r;
             document.getElementById('onboarding').style.display = 'none';
-            
-            if(role === 'regie') {
-                const title = prompt("Titel der Sendung:", "BR Aktuell");
-                const isLive = confirm("SENDUNGSMODUS (LIVE) aktivieren? (Blinkende Anzeige)");
-                const modeStr = isLive ? 'LIVE-MODUS' : 'TEST-MODUS';
-                
-                document.getElementById('regie-ui').style.display = 'block';
-                document.getElementById('display-title').innerText = title;
-                document.getElementById('display-mode').innerText = modeStr;
-                if(isLive) document.getElementById('display-mode').className = 'live-mode';
-                
-                db.ref('config').set({ title: title, mode: modeStr });
+            if(r === 'regie') {
+                document.getElementById('regie-ui').style.display = 'flex';
+                loadConfigList();
             } else {
-                document.getElementById('iphone-ui').style.display = 'flex';
-                // WakeLock für iPhone
-                if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+                document.getElementById('singer-ui').style.display = 'flex';
+                if('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
             }
         };
 
-        window.sendSignal = function(withVideo) {
-            const url = document.getElementById('github-url').value;
-            if(!url) return alert("URL fehlt!");
-            
-            // Start in exakt 1.5 Sekunden
-            const startTime = Date.now() + serverOffset + 1500;
-            
-            db.ref('playback').set({
-                command: 'start',
-                startTime: startTime,
-                url: url,
-                withVideo: withVideo,
-                triggerId: Date.now()
+        // --- CONFIG MANAGEMENT ---
+        window.saveConfig = () => {
+            const name = document.getElementById('conf-name').value || "Unbenannt";
+            const data = {
+                name,
+                c1: document.getElementById('color1').value,
+                c2: document.getElementById('color2').value,
+                c3: document.getElementById('color3').value,
+                url_s: document.getElementById('url_s').value,
+                url_p_a: document.getElementById('url_p_a').value,
+                url_p_b: document.getElementById('url_p_b').value,
+                url_smf: document.getElementById('url_smf').value
+            };
+            db.ref('configs/' + name).set(data);
+            alert("Gespeichert!");
+        };
+
+        function loadConfigList() {
+            db.ref('configs').on('value', snap => {
+                const select = document.getElementById('config-load-select');
+                select.innerHTML = "";
+                snap.forEach(c => {
+                    let opt = document.createElement('option');
+                    opt.value = c.key; opt.innerText = c.key;
+                    select.appendChild(opt);
+                });
+            });
+        }
+
+        window.loadSelectedConfig = () => {
+            const name = document.getElementById('config-load-select').value;
+            db.ref('configs/' + name).once('value', snap => {
+                const d = snap.val();
+                document.getElementById('active-show').innerText = d.name.toUpperCase();
+                document.documentElement.style.setProperty('--main-bg', d.c1);
+                document.documentElement.style.setProperty('--accent', d.c2);
+                document.documentElement.style.setProperty('--header-bg', d.c3);
+                document.getElementById('url_s').value = d.url_s;
+                document.getElementById('url_p_a').value = d.url_p_a;
+                document.getElementById('url_p_b').value = d.url_p_b;
+                document.getElementById('url_smf').value = d.url_smf;
+                db.ref('active_theme').set({c1: d.c1, c2: d.c2, c3: d.c3});
             });
         };
 
-        window.stopSignal = function() {
-            db.ref('playback').update({ command: 'stop' });
+        // Theme-Sync für Sänger
+        db.ref('active_theme').on('value', snap => {
+            if(!snap.val()) return;
+            const d = snap.val();
+            document.documentElement.style.setProperty('--main-bg', d.c1);
+            document.documentElement.style.setProperty('--accent', d.c2);
+            document.documentElement.style.setProperty('--header-bg', d.c3);
+        });
+
+        // --- PLAYBACK LOGIK ---
+        window.fire = (v, vid) => {
+            const start = Date.now() + offset + 1500;
+            const payload = { 
+                cmd: 'start', ver: v, vid, start,
+                u_s: document.getElementById('url_s').value,
+                u_pa: document.getElementById('url_p_a').value,
+                u_pb: document.getElementById('url_p_b').value,
+                u_smf: document.getElementById('url_smf').value
+            };
+            db.ref('sync').set(payload);
         };
 
-        // --- REALTIME LISTENER ---
-        db.ref('playback').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
+        window.stop = () => db.ref('sync').update({ cmd: 'stop' });
 
-            if(data.command === 'start') {
-                const now = Date.now() + serverOffset;
-                const wait = data.startTime - now;
-                
-                setTimeout(() => {
-                    handlePlayback(data);
-                }, Math.max(0, wait));
+        db.ref('sync').on('value', snap => {
+            const d = snap.val();
+            if(!d) return;
+            if(d.cmd === 'start') {
+                const wait = d.start - (Date.now() + offset);
+                setTimeout(() => run(d), Math.max(0, wait));
             } else {
-                resetAll();
+                halt();
             }
         });
 
-        function handlePlayback(data) {
-            const video = document.getElementById('mainVideo');
-            const audio = document.getElementById('mainAudio');
+        function run(d) {
+            const vPlayer = document.getElementById('video-player');
+            const aPlayer = document.getElementById('audio-player');
+            let infoText = "";
 
-            if(currentRole === 'saenger') {
-                // iPhone spielt immer Audio (Playback für Sänger)
-                audio.src = data.url;
-                audio.play().catch(e => console.error("Klick auf Screen nötig"));
-                document.getElementById('singer-status').innerText = "LIVE SYNC";
-            } else {
-                // Regie Logik
-                if(data.withVideo) {
-                    video.src = data.url;
-                    video.style.display = 'block';
-                    if (video.requestFullscreen) video.requestFullscreen();
-                    video.play();
-                } else {
-                    audio.src = data.url;
-                    audio.play();
+            if(role === 'singer') {
+                const url = (d.ver === 3) ? d.u_smf : (d.ver === 1 ? d.u_s : null);
+                if(url) {
+                    aPlayer.src = url; aPlayer.play();
+                    document.getElementById('s-label').innerText = d.ver === 3 ? "SET ME FREE" : "PLAYBACK LIVE";
                 }
+            } else {
+                const url = (d.ver === 1) ? d.u_pa : (d.ver === 2 ? d.u_pb : null);
+                if(url) {
+                    const t = d.vid ? vPlayer : aPlayer;
+                    t.src = url; 
+                    if(d.vid) { vPlayer.style.display='block'; if(vPlayer.requestFullscreen) vPlayer.requestFullscreen(); }
+                    t.play();
+                }
+                document.getElementById('live-status').innerText = d.ver === 3 ? "SÄNGER SOLO (SMF)" : "PUBLIKUM LIVE (V" + d.ver + ")";
             }
             startTimer();
         }
 
-        function resetAll() {
-            const video = document.getElementById('mainVideo');
-            const audio = document.getElementById('mainAudio');
-            video.pause(); audio.pause();
-            video.style.display = 'none';
+        function halt() {
+            const v = document.getElementById('video-player');
+            const a = document.getElementById('audio-player');
+            v.pause(); a.pause(); v.style.display='none';
             if(document.fullscreenElement) document.exitFullscreen();
-            document.getElementById('singer-status').innerText = "BEREIT...";
-            clearInterval(timerInterval);
-            document.getElementById('timer').innerText = "00:00.0";
+            if(role === 'singer') document.getElementById('s-label').innerText = "BEREIT";
+            else document.getElementById('live-status').innerText = "BEREITSCHAFT";
+            clearInterval(tIdx);
         }
 
         function startTimer() {
-            let start = Date.now();
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                let diff = (Date.now() - start) / 1000;
-                let m = Math.floor(diff / 60).toString().padStart(2, '0');
-                let s = (diff % 60).toFixed(1).padStart(4, '0');
-                document.getElementById('timer').innerText = `${m}:${s}`;
+            let s = Date.now();
+            clearInterval(tIdx);
+            tIdx = setInterval(() => {
+                let d = (Date.now() - s) / 1000;
+                let m = Math.floor(d/60).toString().padStart(2,'0') + ":" + (d%60).toFixed(1).padStart(4,'0');
+                if(role === 'regie') document.getElementById('timer').innerText = m;
+                else document.getElementById('s-timer').innerText = m;
             }, 100);
         }
 
-        // Uhrzeit-Anzeige
-        setInterval(() => {
-            const time = new Date().toLocaleTimeString('de-DE');
-            document.getElementById('clock').innerText = time;
-        }, 1000);
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('de-DE'); }, 1000);
     </script>
 </body>
 </html>
