@@ -3,223 +3,234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Moderne Web-App Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>BR Regie-Sync System</title>
+    <title>BR Regie-Sync v2</title>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com";
-        import { getDatabase, ref, set, onValue, serverTimestamp } from "https://www.gstatic.com";
-
-        // BITTE HIER DEINE FIREBASE DATEN EINTRAGEN
-        const firebaseConfig = {
-    apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
-    authDomain: "ardbr-2104b.firebaseapp.com",
-    databaseURL: "https://ardbr-2104b-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "ardbr-2104b",
-    storageBucket: "ardbr-2104b.firebasestorage.app",
-    messagingSenderId: "1046269496627",
-    appId: "1:1046269496627:web:cdbb0c26a8568d0ca98246",
-    measurementId: "G-WNYTF03BX7"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        // Globale Variablen
-        let userRole = null;
-        let opMode = 'TEST';
-        let serverOffset = 0;
-        const audio = document.getElementById('mainAudio');
-        const video = document.getElementById('mainVideo');
-
-        // Server-Zeit Offset berechnen für Millisekunden-Sync
-        onValue(ref(db, ".info/serverTimeOffset"), (snap) => {
-            serverOffset = snap.val();
-        });
-
-        // --- ROLLENAUSWAHL ---
-        window.selectRole = (role) => {
-            userRole = role;
-            document.getElementById('onboarding').style.display = 'none';
-            
-            if(role === 'regie') {
-                initRegie();
-            } else {
-                document.getElementById('iphone-ui').style.display = 'flex';
-                initSinger();
-            }
-        };
-
-        // --- REGIE LOGIK ---
-        function initRegie() {
-            const title = prompt("Titel der Sendung eingeben:", "BR Abendschau");
-            const isLive = confirm("Modus wählen: OK für LIVE-MODUS, Abbrechen für TESTMODUS");
-            opMode = isLive ? 'LIVE' : 'TEST';
-            
-            document.getElementById('regie-ui').style.display = 'block';
-            document.getElementById('display-title').innerText = title;
-            document.getElementById('display-mode').innerText = opMode;
-            if(isLive) document.getElementById('display-mode').classList.add('live');
-
-            set(ref(db, 'config'), { title, opMode });
-        }
-
-        window.startPlayback = (withVideo) => {
-            const url = document.getElementById('github-url').value;
-            if(!url) return alert("Bitte GitHub URL eingeben!");
-            
-            // Startet in exakt 2 Sekunden auf allen Geräten
-            const startTime = Date.now() + serverOffset + 2000;
-            
-            set(ref(db, 'playback'), {
-                command: 'start',
-                startTime: startTime,
-                url: url,
-                withVideo: withVideo,
-                trigger: Math.random()
-            });
-        };
-
-        window.stopPlayback = () => {
-            set(ref(db, 'playback/command'), 'stop');
-        };
-
-        // --- PLAYER LOGIK (FÜR ALLE) ---
-        onValue(ref(db, 'playback'), (snapshot) => {
-            const data = snapshot.val();
-            if(!data) return;
-
-            if(data.command === 'start') {
-                const now = Date.now() + serverOffset;
-                const delay = data.startTime - now;
-                
-                setTimeout(() => {
-                    playMedia(data);
-                }, Math.max(0, delay));
-            } else {
-                resetPlayers();
-            }
-        });
-
-        async function playMedia(data) {
-            if(userRole === 'saenger') {
-                audio.src = data.url;
-                audio.play();
-                document.getElementById('singer-status').innerText = "PLAYBACK LÄUFT...";
-            } else {
-                if(data.withVideo) {
-                    video.src = data.url;
-                    video.style.display = 'block';
-                    if(video.requestFullscreen) video.requestFullscreen();
-                    video.play();
-                } else {
-                    audio.src = data.url;
-                    audio.play();
-                }
-            }
-        }
-
-        function resetPlayers() {
-            audio.pause(); video.pause();
-            video.style.display = 'none';
-            if(document.fullscreenElement) document.exitFullscreen();
-            if(userRole === 'saenger') document.getElementById('singer-status').innerText = "BEREIT...";
-        }
-
-        // iPhone WakeLock (Verhindert Standby)
-        async function initSinger() {
-            try { if('wakeLock' in navigator) await navigator.wakeLock.request('screen'); } catch(e) {}
-        }
-
-        // Uhrzeit-Update
-        setInterval(() => {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString('de-DE');
-        }, 1000);
-    </script>
+    <!-- Firebase Compat SDKs (Verhindert CORS & Module-Errors) -->
+    <script src="https://www.gstatic.com"></script>
+    <script src="https://www.gstatic.com"></script>
 
     <style>
-        :root { --br-blue: #005591; --br-light: #009ee3; --br-red: #d7191c; }
-        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f4; color: #333; overflow: hidden; }
+        :root { --br-blue: #005591; --br-light: #009ee3; --br-red: #d7191c; --white: #ffffff; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #121212; color: white; overflow: hidden; }
         
-        /* Onboarding */
-        #onboarding { position: fixed; inset: 0; background: var(--br-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; }
-        .card { background: white; color: var(--br-blue); padding: 30px; border-radius: 12px; text-align: center; cursor: pointer; width: 200px; margin: 15px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        /* Fullscreen Video Overlay */
+        #mainVideo { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; display: none; z-index: 9999; object-fit: contain; }
+
+        /* Onboarding Screen */
+        #onboarding { position: fixed; inset: 0; background: var(--br-blue); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .card { background: white; color: var(--br-blue); padding: 30px; border-radius: 12px; text-align: center; cursor: pointer; width: 220px; margin: 15px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: 0.2s; }
+        .card:active { transform: scale(0.95); }
+
+        /* Regie Layout */
+        #regie-ui { display: none; padding: 20px; height: 100vh; box-sizing: border-box; background: #f0f2f5; color: #333; }
+        .header { background: var(--br-blue); color: white; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px; }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         
-        /* Regie Interface */
-        #regie-ui { display: none; padding: 20px; }
-        .header { background: var(--br-blue); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        /* iPhone UI */
+        #iphone-ui { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #000; }
         
-        /* iPhone Interface */
-        #iphone-ui { display: none; height: 100vh; background: #000; color: white; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        
-        /* Elemente */
-        .btn { border: none; padding: 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 10px; }
+        /* Buttons & Inputs */
+        .btn { border: none; padding: 18px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; font-size: 1rem; }
         .btn-blue { background: var(--br-blue); color: white; }
         .btn-red { background: var(--br-red); color: white; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; box-sizing: border-box; }
-        .live { color: var(--br-red); animation: blink 1s infinite; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        .live-mode { color: var(--br-red); font-weight: bold; animation: blink 1s infinite; }
         @keyframes blink { 50% { opacity: 0; } }
-        #clock { font-family: monospace; font-size: 1.5rem; }
-        video { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; display: none; z-index: 50; }
+        #clock, #timer { font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <!-- Start-Bildschirm -->
+    <!-- Video Element (Global) -->
+    <video id="mainVideo" playsinline></video>
+    <audio id="mainAudio" playsinline></audio>
+
+    <!-- 1. ROLLENAUSWAHL -->
     <div id="onboarding">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/Logo_Bayerischer_Rundfunk_2024.svg/960px-Logo_Bayerischer_Rundfunk_2024.svg.png width="120" style="margin-bottom: 30px;">
-        <h1>REGIE-SYNC SYSTEM</h1>
-        <div style="display: flex; flex-wrap: wrap; justify-content: center;">
-            <div class="card" onclick="selectRole('regie')">REGIE-KONSOLE</div>
-            <div class="card" onclick="selectRole('saenger')">SÄNGER-IPHONE</div>
-        </div>
+        <img src="https://upload.wikimedia.org" width="150" style="margin-bottom: 40px;">
+        <h1>SYSTEM-START</h1>
+        <div class="card" onclick="selectRole('regie')">REGIE-KONSOLE</div>
+        <div class="card" onclick="selectRole('saenger')">SÄNGER-IPHONE</div>
     </div>
 
-    <!-- Regie Ansicht -->
+    <!-- 2. REGIE INTERFACE -->
     <div id="regie-ui">
         <div class="header">
             <div>
-                <span id="display-title" style="font-size: 1.2rem; font-weight: bold;">---</span>
-                <span id="display-mode" style="margin-left: 15px; font-weight: bold;">TEST</span>
+                <span id="display-title" style="font-size: 1.4rem;">TITEL LADEN...</span><br>
+                <span id="display-mode">MODUS: TEST</span>
             </div>
             <div id="clock">00:00:00</div>
         </div>
 
         <div class="controls">
             <div class="panel">
-                <h3>Medien-Steuerung</h3>
-                <label>GitHub MP4/MP3 URL (Raw):</label>
+                <h3>Sende-Ablauf</h3>
+                <label>GitHub Raw URL (MP4 oder MP3):</label>
                 <input type="text" id="github-url" placeholder="https://raw.githubusercontent.com...">
                 
-                <button class="btn btn-blue" onclick="startPlayback(true)">START: PLAYBACK + VIDEO</button>
-                <button class="btn btn-blue" onclick="startPlayback(false)">START: NUR AUDIO</button>
-                <button class="btn btn-red" onclick="stopPlayback()">STOPP ALLE GERÄTE</button>
+                <button class="btn btn-blue" onclick="sendSignal(true)">START: VIDEO + PLAYBACK</button>
+                <button class="btn btn-blue" onclick="sendSignal(false)">START: NUR AUDIO</button>
+                <button class="btn btn-red" onclick="stopSignal()">STOPP / RESET</button>
             </div>
             
-            <div class="panel">
-                <h3>Monitor</h3>
-                <p>Status: Synchronisiert mit Server</p>
-                <div style="background: #eee; height: 150px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
-                    Vorschau / Regie-Monitor aktiv
-                </div>
+            <div class="panel" style="text-align: center;">
+                <h3>Status Monitor</h3>
+                <p>Verstrichene Zeit:</p>
+                <div id="timer">00:00.0</div>
             </div>
         </div>
     </div>
 
-    <!-- iPhone/Sänger Ansicht -->
+    <!-- 3. SÄNGER INTERFACE -->
     <div id="iphone-ui">
-        <img src="https://upload.wikimedia.org" width="100" style="opacity: 0.5;">
-        <h2 id="singer-status" style="margin-top: 40px;">BEREIT FÜR SIGNAL</h2>
-        <p style="color: #666; font-size: 0.8rem;">Diese Web-App hält das Display aktiv.</p>
+        <img src="https://upload.wikimedia.org" width="100" style="opacity: 0.3;">
+        <h2 id="singer-status" style="margin-top: 30px; letter-spacing: 2px;">BEREIT...</h2>
+        <p style="color: #444;">Sync-Service aktiv</p>
     </div>
 
-    <!-- Versteckte Media-Player -->
-    <video id="mainVideo" playsinline></video>
-    <audio id="mainAudio" playsinline></audio>
+    <script>
+        // --- FIREBASE KONFIGURATION ---
+        const firebaseConfig = {
+  apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
+  authDomain: "ardbr-2104b.firebaseapp.com",
+  databaseURL: "https://ardbr-2104b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ardbr-2104b",
+  storageBucket: "ardbr-2104b.firebasestorage.app",
+  messagingSenderId: "1046269496627",
+  appId: "1:1046269496627:web:cdbb0c26a8568d0ca98246",
+  measurementId: "G-WNYTF03BX7"
+        };
 
+        // Initialisierung
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentRole = null;
+        let serverOffset = 0;
+        let timerInterval;
+
+        // Zeit-Sync
+        db.ref(".info/serverTimeOffset").on("value", (snap) => {
+            serverOffset = snap.val();
+        });
+
+        // --- GLOBAL FUNCTIONS ---
+        window.selectRole = function(role) {
+            currentRole = role;
+            document.getElementById('onboarding').style.display = 'none';
+            
+            if(role === 'regie') {
+                const title = prompt("Titel der Sendung:", "BR Aktuell");
+                const isLive = confirm("SENDUNGSMODUS (LIVE) aktivieren? (Blinkende Anzeige)");
+                const modeStr = isLive ? 'LIVE-MODUS' : 'TEST-MODUS';
+                
+                document.getElementById('regie-ui').style.display = 'block';
+                document.getElementById('display-title').innerText = title;
+                document.getElementById('display-mode').innerText = modeStr;
+                if(isLive) document.getElementById('display-mode').className = 'live-mode';
+                
+                db.ref('config').set({ title: title, mode: modeStr });
+            } else {
+                document.getElementById('iphone-ui').style.display = 'flex';
+                // WakeLock für iPhone
+                if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(()=>{});
+            }
+        };
+
+        window.sendSignal = function(withVideo) {
+            const url = document.getElementById('github-url').value;
+            if(!url) return alert("URL fehlt!");
+            
+            // Start in exakt 1.5 Sekunden
+            const startTime = Date.now() + serverOffset + 1500;
+            
+            db.ref('playback').set({
+                command: 'start',
+                startTime: startTime,
+                url: url,
+                withVideo: withVideo,
+                triggerId: Date.now()
+            });
+        };
+
+        window.stopSignal = function() {
+            db.ref('playback').update({ command: 'stop' });
+        };
+
+        // --- REALTIME LISTENER ---
+        db.ref('playback').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(!data) return;
+
+            if(data.command === 'start') {
+                const now = Date.now() + serverOffset;
+                const wait = data.startTime - now;
+                
+                setTimeout(() => {
+                    handlePlayback(data);
+                }, Math.max(0, wait));
+            } else {
+                resetAll();
+            }
+        });
+
+        function handlePlayback(data) {
+            const video = document.getElementById('mainVideo');
+            const audio = document.getElementById('mainAudio');
+
+            if(currentRole === 'saenger') {
+                // iPhone spielt immer Audio (Playback für Sänger)
+                audio.src = data.url;
+                audio.play().catch(e => console.error("Klick auf Screen nötig"));
+                document.getElementById('singer-status').innerText = "LIVE SYNC";
+            } else {
+                // Regie Logik
+                if(data.withVideo) {
+                    video.src = data.url;
+                    video.style.display = 'block';
+                    if (video.requestFullscreen) video.requestFullscreen();
+                    video.play();
+                } else {
+                    audio.src = data.url;
+                    audio.play();
+                }
+            }
+            startTimer();
+        }
+
+        function resetAll() {
+            const video = document.getElementById('mainVideo');
+            const audio = document.getElementById('mainAudio');
+            video.pause(); audio.pause();
+            video.style.display = 'none';
+            if(document.fullscreenElement) document.exitFullscreen();
+            document.getElementById('singer-status').innerText = "BEREIT...";
+            clearInterval(timerInterval);
+            document.getElementById('timer').innerText = "00:00.0";
+        }
+
+        function startTimer() {
+            let start = Date.now();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                let diff = (Date.now() - start) / 1000;
+                let m = Math.floor(diff / 60).toString().padStart(2, '0');
+                let s = (diff % 60).toFixed(1).padStart(4, '0');
+                document.getElementById('timer').innerText = `${m}:${s}`;
+            }, 100);
+        }
+
+        // Uhrzeit-Anzeige
+        setInterval(() => {
+            const time = new Date().toLocaleTimeString('de-DE');
+            document.getElementById('clock').innerText = time;
+        }, 1000);
+    </script>
 </body>
 </html>
