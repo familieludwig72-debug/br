@@ -1,172 +1,105 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BR Studio Sync Pro</title>
-    <style>
-        :root {
-            --br-blue: #005293;
-            --bg: #000;
-            --text: #fff;
-        }
-        body {
-            margin: 0; background: var(--bg); color: var(--text);
-            font-family: sans-serif; overflow: hidden;
-            display: flex; justify-content: center; align-items: center; height: 100vh;
-        }
-        .hidden { display: none !important; }
-        #master-ui {
-            position: fixed; bottom: 0; width: 100%; background: rgba(20,20,20,0.9);
-            padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
-        .btn {
-            padding: 15px 30px; border: none; border-radius: 5px; font-weight: bold;
-            cursor: pointer; background: var(--br-blue); color: white;
-        }
-        .btn-stop { background: #c0392b; }
-        .btn-warmup { background: #e67e22; }
-        #status { font-size: 1.5rem; text-align: center; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        #tally {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 0px solid red; pointer-events: none; transition: border 0.1s;
-        }
-        .live #tally { border-width: 10px; }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sync Player</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<style>
+html,body{
+  margin:0; width:100%; height:100%;
+  background:black; color:white;
+  overflow:hidden; font-family:sans-serif;
+}
+#screen{
+  position:fixed; inset:0;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+#logo{ width:40vw; max-width:300px }
+button{ font-size:20px; padding:10px 20px; margin-top:20px }
+video,audio{ display:none }
+</style>
 </head>
-<body class="">
+<body>
 
-    <div id="tally"></div>
+<div id="screen">
+  <img id="logo" src="logo.png">
+  <div id="buttons">
+    <button onclick="setRole('sender')">🎬 Sender</button>
+    <button onclick="setRole('receiver')">🔊 Empfänger</button>
+  </div>
+  <p id="hint">Tippe einmal, um Audio auf iOS zu aktivieren</p>
+</div>
 
-    <div id="setup">
-        <h1 style="text-align:center;">BR SYNC PRO</h1>
-        <div style="display:flex; gap:20px;">
-            <button class="btn" onclick="startAs('master')">REGIE (Video + Regie-Audio)</button>
-            <button class="btn" onclick="startAs('client')">SÄNGER (Nur Playback-Audio)</button>
-        </div>
-        <p style="font-size: 0.8rem; opacity: 0.6; text-align: center; margin-top: 20px;">
-            Tipp: iPhone Stummschalter deaktivieren!
-        </p>
-    </div>
+<video id="video" playsinline></video>
+<audio id="audio" playsinline></audio>
 
-    <div id="main" class="hidden" style="width:100%; height:100%;">
-        <div id="status">BEREIT</div>
-        <video id="v-player" playsinline preload="auto"></video>
-        
-        <div id="master-ui" class="hidden">
-            <div style="display:flex; gap:10px;">
-                <button class="btn btn-warmup" onclick="sendCmd('warmup')">WARMUP START</button>
-                <button class="btn" onclick="sendCmd('play')">SHOW START (Space)</button>
-                <button class="btn btn-stop" onclick="sendCmd('stop')">STOP</button>
-            </div>
-            <div id="timer">00:00</div>
-        </div>
-    </div>
+<script>
+// ===== Firebase =====
+firebase.initializeApp({
+  apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
+  databaseURL: "https://ardbr-2104b-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ardbr-2104b"
+});
+const db = firebase.database();
 
-    <audio id="a-warmup" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
-    <audio id="a-playback" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"></audio>
-    <audio id="a-regie" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
+// ===== State =====
+let role = null;
+const video = document.getElementById("video");
+const audio = document.getElementById("audio");
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+// ===== iOS Unlock Trick =====
+function unlockAudio(){
+  audio.src = "data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAA=="; // 0.1s silent
+  audio.play().catch(()=>{});
+}
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDO52wApLEslVgfB5Y2TdzY5rPivOUEzBQ",
-            databaseURL: "https://ardbr-2104b-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "ardbr-2104b"
-        };
+// ===== Rolle setzen =====
+function setRole(r){
+  role = r;
+  unlockAudio(); // wichtig für iPhone
+  document.getElementById("buttons").remove();
+  document.getElementById("hint").innerText =
+    "Warte auf Startsignal...";
+}
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const stateRef = ref(db, 'session/state');
+// ===== Firebase Listener =====
+db.ref("session").on("value", snap=>{
+  const s = snap.val();
+  if(!s || s.state !== "play") return;
 
-        let myRole = null;
-        const v = document.getElementById('v-player');
-        const aWarmup = document.getElementById('a-warmup');
-        const aPlayback = document.getElementById('a-playback');
-        const aRegie = document.getElementById('a-regie');
+  const offset = (Date.now() - s.startTime)/1000;
 
-        // VIDEO QUELLE (Regie sieht dieses Video)
-        v.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  document.getElementById("screen").style.display="none";
 
-        window.startAs = (role) => {
-            myRole = role;
-            document.getElementById('setup').classList.add('hidden');
-            document.getElementById('main').classList.remove('hidden');
-            if(role === 'master') document.getElementById('master-ui').classList.remove('hidden');
+  if(role === "sender"){
+    video.src = s.senderVideo;
+    video.style.display="block";
+    video.currentTime = offset;
+    video.play();
+  }
 
-            // WICHTIG: Audio-Context Unlock für iPhone
-            [v, aWarmup, aPlayback, aRegie].forEach(m => {
-                m.play().then(() => { m.pause(); m.currentTime = 0; }).catch(e => {});
-            });
+  if(role === "receiver"){
+    audio.src = s.receiverAudio;
+    audio.currentTime = offset;
+    audio.play();
+  }
+});
 
-            listen();
-        };
-
-        window.sendCmd = (mode) => {
-            set(stateRef, {
-                mode: mode,
-                startTime: Date.now() + 600 // 600ms Netzwerk-Puffer
-            });
-        };
-
-        // Keyboard Shortcuts
-        document.addEventListener('keydown', e => {
-            if(myRole !== 'master') return;
-            if(e.code === 'Space') { e.preventDefault(); sendCmd('play'); }
-            if(e.code === 'Escape') sendCmd('stop');
-        });
-
-        function listen() {
-            onValue(stateRef, (snap) => {
-                const data = snap.val();
-                if(!data) return;
-
-                const now = Date.now();
-                const diff = data.startTime - now;
-
-                // Alles stoppen für sauberen Wechsel
-                [v, aWarmup, aPlayback, aRegie].forEach(m => { m.pause(); });
-                document.body.classList.remove('live');
-
-                if(data.mode === 'stop') {
-                    document.getElementById('status').innerText = "STANDBY";
-                    v.currentTime = 0; aPlayback.currentTime = 0; aRegie.currentTime = 0;
-                    return;
-                }
-
-                setTimeout(() => {
-                    if(data.mode === 'warmup') {
-                        document.getElementById('status').innerText = "WARMUP LÄUFT...";
-                        // Nur Sänger hört Warmup
-                        if(myRole === 'client') aWarmup.play();
-                    } 
-                    else if(data.mode === 'play') {
-                        document.body.classList.add('live');
-                        document.getElementById('status').innerText = "!!! LIVE !!!";
-                        
-                        // AUDIO ROUTING LOGIK
-                        if(myRole === 'master') {
-                            v.play();
-                            aRegie.play(); // Regie hört Datei A (oder Video-Ton)
-                        } else {
-                            aPlayback.play(); // Sänger hört Datei B
-                        }
-                    }
-                }, Math.max(0, diff));
-            });
-        }
-
-        // Timer für Regie
-        setInterval(() => {
-            if(myRole === 'master' && !v.paused) {
-                const s = Math.floor(v.currentTime);
-                document.getElementById('timer').innerText = 
-                    `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;
-            }
-        }, 500);
-    </script>
+// ===== Sender Steuerung =====
+document.addEventListener("keydown", e=>{
+  if(role === "sender" && e.code === "Space"){
+    db.ref("session").set({
+      state: "play",
+      startTime: Date.now(),
+      senderVideo: "https://familieludwig72-debug.github.io/br/media/Fertige_Version_mp4.mp4",
+      receiverAudio: "https://familieludwig72-debug.github.io/br/media/Playback_Instrumental.mp3"
+    });
+  }
+});
+</script>
 </body>
 </html>
